@@ -1,2 +1,0 @@
-trade_bot_project/
-tempCodeRunnerFile.py
