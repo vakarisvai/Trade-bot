@@ -7,10 +7,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 
-# gaunam duomenis
-# susiskaiciuojam indikatorius vakar ir uzvakar
-# patikrinam trade
-# jei trade 1 arba -1 siunciam laiska
 
 def get_data(ticker: str) -> pd.DataFrame:
     """
@@ -40,10 +36,10 @@ def trade(rsi: float, previous_rsi: float, short_term_ma: float, previous_short_
     :param long_term_ma: yesterday's value of long term moving average 
     :param previous_long_term_ma: day's before yesterday value of long term moving average 
     """
-    if (previous_rsi < 30 <= rsi) and (previous_short_term_ma < previous_long_term_ma) and (short_term_ma > long_term_ma):
+    if (previous_rsi < 30 <= rsi) & (previous_short_term_ma < previous_long_term_ma) & (short_term_ma > long_term_ma):
         return 1
     
-    if (rsi <= 70 < previous_rsi) and (previous_short_term_ma > previous_long_term_ma) and (short_term_ma < long_term_ma):
+    if (rsi <= 70 < previous_rsi) & (previous_short_term_ma > previous_long_term_ma) & (short_term_ma < long_term_ma):
         return -1
     
     return 0
@@ -53,6 +49,7 @@ def inform_subscribers(trade_result: int, ticker: str) -> None:
     """
     Sends email to the subscribers if today they need to either sell or buy the stock.
     :param trade: buy/sell indicator.
+    :param ticker: a ticker symbol of the stock.
     """
     dynamodb = boto3.resource(
         "dynamodb",
@@ -62,18 +59,19 @@ def inform_subscribers(trade_result: int, ticker: str) -> None:
     )
     
     table = dynamodb.Table("subscribers")
-    primary_key = {"hash_key": "Email"}
-    response = table.get_item(Key=primary_key)
+    response = table.scan()
+    items = response["Items"]
 
     sender_email = "tcsprint2project@gmail.com"
     password = os.environ.get("TCgmail")
     if trade_result == 1:
-        message_body = f"You should buy {ticker} stock"
+        message_body = f"According to RSI and moving average indicators {ticker} stock is a buy"
     else:
-        message_body = f"You should sell/short {ticker} stock"
+        message_body = f"According to RSI and moving average indicators {ticker} stock is a sell"
 
-    for receiver_email in response:
+    for item in items:
 
+        receiver_email = item["Email"]
         message = MIMEMultipart()
         message["From"] = sender_email
         message["To"] = receiver_email
@@ -84,7 +82,3 @@ def inform_subscribers(trade_result: int, ticker: str) -> None:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, message.as_string())
-
-
-# if __name__ == "__main__":
-#     main()

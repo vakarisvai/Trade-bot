@@ -8,7 +8,7 @@ class Indicators:
 
     def __init__(self, data: pd.DataFrame, day: str) -> None:
         self._day: str = day
-        self._data: pd.DataFrame = self.prepare_data(data)
+        self.data = data
         self._rsi: float = self.count_rsi()
         self._short_term_ma: float = self.count_ma(Indicators.short_term_window)
         self._long_term_ma: float = self.count_ma(Indicators.long_term_window)
@@ -24,13 +24,19 @@ class Indicators:
     @property
     def long_term_ma(self):
         return self._long_term_ma
+    
+    @property
+    def data(self):
+        return self._data
 
-    def prepare_data(self, data: pd.DataFrame) -> pd.DataFrame:
+    @data.setter
+    def data(self, data: pd.DataFrame) -> pd.DataFrame:
         if self._day == "YESTERDAY":
             self._data = data
         else:
             data = data.drop(data.index[-1])
             self._data = data
+
 
     def count_rsi(self) -> float:
         """
@@ -38,7 +44,7 @@ class Indicators:
         :param data: data of the stock.
         :return: RSI value of yesterday.
         """
-        data = self._data[-Indicators.rsi_window :]
+        data = self.data[-Indicators.rsi_window:]
         diff: pd.Series = data["Price"].diff()
         avg_gain = (
             (diff.where(diff > 0, 0)).rolling(window=Indicators.rsi_window).mean()
@@ -46,7 +52,8 @@ class Indicators:
         avg_loss = (
             (-diff.where(diff < 0, 0)).rolling(window=Indicators.rsi_window).mean()
         )
-        rs: float = avg_gain / avg_loss
+
+        rs: float = avg_gain.iloc[-1] / avg_loss.iloc[-1]
         rsi: float = 100 - (100 / (1 + rs))
         return rsi
 
@@ -56,6 +63,5 @@ class Indicators:
         :param window: size of the window.
         :return: moving average value of the given period of time.
         """
-        last_row: pd.DataFrame = self._data.iloc[[-1]]
-        moving_average: float = last_row["Price"].rolling(window=window).mean()
-        return moving_average
+        moving_average: float = self.data["Price"].rolling(window=window).mean()
+        return moving_average.iloc[-1]

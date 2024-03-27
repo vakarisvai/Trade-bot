@@ -1,12 +1,14 @@
 import boto3
 import os
 from validate_email import validate_email
+import sys
 
 
 class Subscriber:
 
     def __init__(self, email: str) -> None:
         self.email = email
+        self._ddb_data = self.get_ddb_data()
 
     @property
     def email(self):
@@ -15,51 +17,75 @@ class Subscriber:
     @email.setter
     def email(self, email: str):
         while True:
-            is_valid = validate_email(email)  # , verify=True)
+            is_valid = validate_email(email)
             if is_valid:
                 self._email = email
                 break
-            else:
-                print("Invalid email address")
-                email = input("Enter your email address: ")
+            print("Invalid email address")
+            email = input("Enter your email address: ")
 
     @classmethod
     def get(cls) -> str:
         email = input("Enter your email address: ")
         return cls(email)
 
+    def get_ddb_data(self) -> list[str]:
+        dynamodb = boto3.resource(
+            "dynamodb",
+            aws_access_key_id=os.environ.get("aws_access_key"),
+            aws_secret_access_key=os.environ.get("aws_secret_access_key"),
+            region_name="us-east-1"
+        )
+    
+        table = dynamodb.Table("subscribers")
+        response = table.scan()
+        items = response["Items"]
+        data = [d["Email"] for d in items]
+        return data
+
     def add_subscriber(self) -> None:
         """
         Adds a new subscriber to DynamoDB
         :param email: email address of the new subscriber
         """
-        dynamodb = boto3.resource(
-            "dynamodb",
-            aws_access_key_id=os.environ.get("aws_access_key"),
-            aws_secret_access_key=os.environ.get("aws_secret_access_key"),
-            region_name="us-east-1",
-        )
-
-        item = {"Email": self.email}
-        table = dynamodb.Table("subscribers")
-        table.put_item(Item=item)
-        print(f"Email '{self.email}' added successfully")
-
-    def remove_subscriber(self, email_address) -> None:
-        dynamodb = boto3.resource(
-            "dynamodb",
-            aws_access_key_id=os.environ.get("aws_access_key"),
-            aws_secret_access_key=os.environ.get("aws_secret_access_key"),
-            region_name="us-east-1",
-        )
-
+        print("Press ctrl+c to stop adding subscribers")
         while True:
-            delete_key = {"Email": email_address}
-            table = dynamodb.Table("subscribers")
-            response = table.delete_item(Key=delete_key)
+            try:
+                if self.email in self._ddb_data:
+                    print("You are a subscriber already!")
+                else:
+                    dynamodb = boto3.resource(
+                        "dynamodb",
+                        aws_access_key_id=os.environ.get("aws_access_key"),
+                        aws_secret_access_key=os.environ.get("aws_secret_access_key"),
+                        region_name="us-east-1",
+                    )
 
-            if "DeletedItems" in response:
-                print(f"Email '{email_address}' deleted successfully")
+                    item = {"Email": self.email}
+                    table = dynamodb.Table("subscribers")
+                    table.put_item(Item=item)
+                    print(f"Email '{self.email}' was added successfully to the subscribers list!")
+                self.email = input("Enter your email address: ")
+            except KeyboardInterrupt:
+                sys.exit()
+
+
+    def remove_subscriber(self) -> None:
+        """Removes a subscriber from DynamoDB"""
+        while True:
+            if self.email not in self._ddb_data:
+                print("You are not a subscriber")
+                self.email = input("Enter email address to delete: ")
             else:
-                print(f"Email '{email_address}' not found in the table")
-                email_address = input("Enter email address to delete: ")
+                dynamodb = boto3.resource(
+                    "dynamodb",
+                    aws_access_key_id=os.environ.get("aws_access_key"),
+                    aws_secret_access_key=os.environ.get("aws_secret_access_key"),
+                    region_name="us-east-1",
+                )
+
+                delete_key = {"Email": self.email}
+                table = dynamodb.Table("subscribers")
+                response = table.delete_item(Key=delete_key)
+                print(f"Email '{self.email}' was deleted successfully")
+                break
