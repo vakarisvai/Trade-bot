@@ -48,7 +48,6 @@ class Subscriber:
         Adds a new subscriber to DynamoDB
         :param email: email address of the new subscriber
         """
-        print("Press ctrl+c to stop adding subscribers")
         while True:
             try:
                 if self.email in self._ddb_data:
@@ -86,6 +85,6 @@ class Subscriber:
 
                 delete_key = {"Email": self.email}
                 table = dynamodb.Table("subscribers")
-                response = table.delete_item(Key=delete_key)
+                table.delete_item(Key=delete_key)
                 print(f"Email '{self.email}' was deleted successfully")
                 break
