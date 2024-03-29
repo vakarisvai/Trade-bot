@@ -36,11 +36,23 @@ def trade(rsi: float, previous_rsi: float, short_term_ma: float, previous_short_
     :param long_term_ma: yesterday's value of long term moving average 
     :param previous_long_term_ma: day's before yesterday value of long term moving average 
     """
-    if (previous_rsi < 30 <= rsi) & (previous_short_term_ma < previous_long_term_ma) & (short_term_ma > long_term_ma):
+    # if (previous_rsi < 30 <= rsi) & (previous_short_term_ma < previous_long_term_ma) & (short_term_ma > long_term_ma):
+    #     return 1
+    
+    # if (rsi <= 70 < previous_rsi) & (previous_short_term_ma > previous_long_term_ma) & (short_term_ma < long_term_ma):
+    #     return -1
+    
+    # return 0
+    if (previous_short_term_ma < previous_long_term_ma) & (short_term_ma > long_term_ma):
+        return 2
+    elif (previous_short_term_ma > previous_long_term_ma) & (short_term_ma < long_term_ma):
         return 1
     
-    if (rsi <= 70 < previous_rsi) & (previous_short_term_ma > previous_long_term_ma) & (short_term_ma < long_term_ma):
+    
+    if (previous_rsi < 30 <= rsi):
         return -1
+    elif (rsi <= 70 < previous_rsi):
+        return -2
     
     return 0
 

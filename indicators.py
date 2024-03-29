@@ -2,9 +2,9 @@ import pandas as pd
 
 
 class Indicators:
-    short_term_window = 50
-    long_term_window = 200
-    rsi_window = 20
+    short_term_window = 10
+    long_term_window = 50
+    rsi_window = 14
 
     def __init__(self, data: pd.DataFrame, day: str) -> None:
         self._day: str = day
