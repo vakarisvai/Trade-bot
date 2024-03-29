@@ -7,8 +7,7 @@ from helperfunctions import trade
 def main():
     cash = 1000000
     stocks = 0
-    shorted_stocks = 0
-    ticker = "BABA"
+    ticker = "KO"
     start = "2008-01-01"
     end = "2022-12-31"
 
@@ -20,38 +19,12 @@ def main():
         if prev_row.Position == 0 and row.Position == 1:
             stocks = cash / row.Price
             cash = 0
-            shorted_stocks = 0
         elif prev_row.Position == 1 and row.Position == 0:
             cash = stocks * row.Price
             stocks = 0
-            shorted_stocks = 0
-        # elif prev_row.Position == 0 and row.Position == -1:
-        #     # shorting
-        #     shorted_stocks = cash / row.Price
-        #     cash = 2 * cash
-        #     stocks = 0
-        # elif prev_row.Position == -1 and row.Position == 0:
-        #     money = shorted_stocks * row.Price
-        #     shorted_stocks = 0
-        #     cash = cash - money
-        #     stocks = 0
-        elif prev_row.Position == -1 and row.Position == 1:
-        #     money = shorted_stocks * row.Price
-        #     cash = cash - money
-        #     stocks = cash / row.Price 
-        #     shorted_stocks = 0
-        #     cash = 0
-            stocks = cash / row.Price
-            cash = 0
-        elif prev_row.Position == 1 and row.Position == -1:
-            # cash = stocks * 2 * row.Price
-            # shorted_stocks = stocks
-            # stocks = 0
-            cash = stocks * row.Price
-            stocks = 0
+
     print(f"Cash balance: {round(cash, 2)}")
     print(f"Stocks: {stocks}")
-    print(f"Shorted stocs: {shorted_stocks}")
 
     
 
@@ -79,15 +52,13 @@ def prepare_data(ticker_symbol: str, start_date: str, end_date: str) -> pd.DataF
             if pos == 0 and trade_signal == 2:
                 pos = 1
             elif pos == 0 and trade_signal == 1:
-                pos = -1
+                pos = 0
             elif pos == 1 and trade_signal == 1:
-                pos = -1
-            elif pos == -1 and trade_signal == 2:
-                pos = 1
+                pos = 0
             elif pos == 1 and trade_signal == -2:
                 pos = 0
-            elif pos == -1 and trade_signal == -1:
-                pos = 0
+            elif pos == 0 and trade_signal == -1:
+                pos = 1
 
             trade_signal_list.append(trade_signal)
             positions.append(pos)

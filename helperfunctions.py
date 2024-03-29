@@ -63,10 +63,15 @@ def inform_subscribers(trade_result: int, ticker: str) -> None:
     :param trade: buy/sell indicator.
     :param ticker: a ticker symbol of the stock.
     """
+    ssm_client = boto3.client('ssm')
+    aws_access_key = ssm_client.get_parameter(Name="my_aws_access_key", WithDecryption=True)["Parameter"]["Value"]
+    aws_secret_access_key = ssm_client.get_parameter(Name="my_aws_secret_access_key", WithDecryption=True)["Parameter"]["Value"]
+    gmail_password = ssm_client.get_parameter(Name="tc_gmail_key", WithDecryption=True)["Parameter"]["Value"]
+
     dynamodb = boto3.resource(
         "dynamodb",
-        aws_access_key_id=os.environ.get("aws_access_key"),
-        aws_secret_access_key=os.environ.get("aws_secret_access_key"),
+        aws_access_key_id=aws_access_key,
+        aws_secret_access_key=aws_secret_access_key,
         region_name="us-east-1"
     )
     
@@ -75,7 +80,7 @@ def inform_subscribers(trade_result: int, ticker: str) -> None:
     items = response["Items"]
 
     sender_email = "tcsprint2project@gmail.com"
-    password = os.environ.get("TCgmail")
+    password = gmail_password
     if trade_result == 1:
         message_body = f"According to RSI and moving average indicators {ticker} stock is a buy"
     else:
