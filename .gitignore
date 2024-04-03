@@ -62,3 +62,4 @@ webencodings/
 yfinance-0.2.37.dist-info/
 yfinance/
 __pycache__/subscriber.cpython-312.pyc
+linuxdependencies/

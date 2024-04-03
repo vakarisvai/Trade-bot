@@ -48,9 +48,10 @@ class Subscriber:
         Adds a new subscriber to DynamoDB
         :param email: email address of the new subscriber
         """
+        subs = []
         while True:
             try:
-                if self.email in self._ddb_data:
+                if (self.email in self._ddb_data) or (self.email in subs):
                     print("You are a subscriber already!")
                 else:
                     dynamodb = boto3.resource(
@@ -64,6 +65,7 @@ class Subscriber:
                     table = dynamodb.Table("subscribers")
                     table.put_item(Item=item)
                     print(f"Email '{self.email}' was added successfully to the subscribers list!")
+                    subs.append(self.email)
                 self.email = input("Enter your email address: ")
             except KeyboardInterrupt:
                 sys.exit()

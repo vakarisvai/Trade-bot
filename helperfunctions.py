@@ -1,11 +1,10 @@
-import yfinance as yf
-from datetime import datetime, timedelta
+import requests
 import pandas as pd
-import os
 import boto3
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
+from indicators import Indicators
 
 
 def get_data(ticker: str) -> pd.DataFrame:
@@ -13,15 +12,20 @@ def get_data(ticker: str) -> pd.DataFrame:
     Downloads stock data and returns it as a pandas DataFrame.
     :param ticker: stock's ticker symbol.
     """
-    end_date = datetime.now() - timedelta(days=1)
-    end_date_str = end_date.strftime('%Y-%m-%d')
+    ssm_client = boto3.client("ssm")
+    api_key = ssm_client.get_parameter(Name="fmp_key", WithDecryption=True)["Parameter"]["Value"]
 
-    start_date = end_date - timedelta(days=300)
-    start_date_str = start_date.strftime('%Y-%m-%d')
+    url = f'https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?apikey={api_key}'
+    response = requests.get(url)
 
-    data = yf.download(ticker, start=start_date_str, end=end_date_str)
-    data = data[["Adj Close"]]
-    data = data.rename(columns={"Adj Close": "Price"})
+    data = response.json()['historical']
+    data = pd.DataFrame(data)
+    data['date'] = pd.to_datetime(data['date'])
+    data.set_index('date', inplace=True)
+    data = data[['close']]
+    data.columns = ['Price']
+    period = Indicators.long_term_window + 5
+    data = data[-period:]
 
     return data
 
@@ -36,13 +40,6 @@ def trade(rsi: float, previous_rsi: float, short_term_ma: float, previous_short_
     :param long_term_ma: yesterday's value of long term moving average 
     :param previous_long_term_ma: day's before yesterday value of long term moving average 
     """
-    # if (previous_rsi < 30 <= rsi) & (previous_short_term_ma < previous_long_term_ma) & (short_term_ma > long_term_ma):
-    #     return 1
-    
-    # if (rsi <= 70 < previous_rsi) & (previous_short_term_ma > previous_long_term_ma) & (short_term_ma < long_term_ma):
-    #     return -1
-    
-    # return 0
     if (previous_short_term_ma < previous_long_term_ma) & (short_term_ma > long_term_ma):
         return 2
     elif (previous_short_term_ma > previous_long_term_ma) & (short_term_ma < long_term_ma):
