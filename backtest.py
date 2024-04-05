@@ -13,7 +13,7 @@ def main():
 
     data = prepare_data(ticker, start, end)
 
-    for i in range(1,len(data)):
+    for i in range(1, len(data)):
         row = data.iloc[i]
         prev_row = data.iloc[i-1]
         if prev_row.Position == 0 and row.Position == 1:
@@ -26,7 +26,6 @@ def main():
     print(f"Cash balance: {round(cash, 2)}")
     print(f"Stocks: {stocks}")
 
-    
 
 def prepare_data(ticker_symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
     data = yf.download(ticker_symbol, start=start_date, end=end_date)
@@ -47,7 +46,7 @@ def prepare_data(ticker_symbol: str, start_date: str, end_date: str) -> pd.DataF
             prev_sma = previous_indicators.short_term_ma
             lma = indicators.long_term_ma
             prev_lma = previous_indicators.long_term_ma
-            trade_signal = trade(rsi,prev_rsi,sma,prev_sma,lma,prev_lma)
+            trade_signal = trade(rsi, prev_rsi, sma, prev_sma, lma, prev_lma)
 
             if pos == 0 and trade_signal == 2:
                 pos = 1

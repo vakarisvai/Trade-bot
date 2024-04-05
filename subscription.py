@@ -1,10 +1,12 @@
 from subscriber import Subscriber
 import os
 
+
 def main():
-    print("Press ctrl+c to stop adding/removing subscribers")   
+    print("Press ctrl+c to stop adding/removing subscribers")
     while True:
         try:
+
             sub = Subscriber.get()
             print("Press 1 to add a subscriber")
             print("Press 2 to remove a subscriber")
@@ -19,9 +21,9 @@ def main():
         except KeyboardInterrupt:
             break
 
+
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
-
 
 
 if __name__ == "__main__":

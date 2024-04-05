@@ -2,9 +2,15 @@ import boto3
 import os
 from validate_email import validate_email
 import sys
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class Subscriber:
+
+    aws_access_key_id = os.environ.get("aws_access_key")
+    aws_secret_access_key = os.environ.get("aws_secret_access_key")
+    region_name = os.getenv("region_name")
 
     def __init__(self, email: str) -> None:
         self.email = email
@@ -32,11 +38,11 @@ class Subscriber:
     def get_ddb_data(self) -> list[str]:
         dynamodb = boto3.resource(
             "dynamodb",
-            aws_access_key_id=os.environ.get("aws_access_key"),
-            aws_secret_access_key=os.environ.get("aws_secret_access_key"),
-            region_name="us-east-1"
+            aws_access_key_id=Subscriber.aws_access_key_id,
+            aws_secret_access_key=Subscriber.aws_secret_access_key,
+            region_name=Subscriber.region_name
         )
-    
+
         table = dynamodb.Table("subscribers")
         response = table.scan()
         items = response["Items"]
@@ -56,9 +62,9 @@ class Subscriber:
                 else:
                     dynamodb = boto3.resource(
                         "dynamodb",
-                        aws_access_key_id=os.environ.get("aws_access_key"),
-                        aws_secret_access_key=os.environ.get("aws_secret_access_key"),
-                        region_name="us-east-1",
+                        aws_access_key_id=Subscriber.aws_access_key_id,
+                        aws_secret_access_key=Subscriber.aws_secret_access_key,
+                        region_name=Subscriber.region_name,
                     )
 
                     item = {"Email": self.email}
@@ -70,23 +76,24 @@ class Subscriber:
             except KeyboardInterrupt:
                 sys.exit()
 
-
     def remove_subscriber(self) -> None:
         """Removes a subscriber from DynamoDB"""
+        removed_subs = []
         while True:
-            if self.email not in self._ddb_data:
+            if (self.email not in self._ddb_data) or (self.email in removed_subs):
                 print("You are not a subscriber")
                 self.email = input("Enter email address to delete: ")
             else:
                 dynamodb = boto3.resource(
                     "dynamodb",
-                    aws_access_key_id=os.environ.get("aws_access_key"),
-                    aws_secret_access_key=os.environ.get("aws_secret_access_key"),
-                    region_name="us-east-1",
+                    aws_access_key_id=Subscriber.aws_access_key_id,
+                    aws_secret_access_key=Subscriber.aws_secret_access_key,
+                    region_name=Subscriber.region_name,
                 )
 
                 delete_key = {"Email": self.email}
                 table = dynamodb.Table("subscribers")
                 table.delete_item(Key=delete_key)
                 print(f"Email '{self.email}' was deleted successfully")
+                removed_subs.append(self.email)
                 break

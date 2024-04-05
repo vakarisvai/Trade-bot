@@ -24,7 +24,7 @@ class Indicators:
     @property
     def long_term_ma(self):
         return self._long_term_ma
-    
+
     @property
     def data(self):
         return self._data
@@ -36,7 +36,6 @@ class Indicators:
         else:
             data = data.drop(data.index[-1])
             self._data = data
-
 
     def count_rsi(self) -> float:
         """

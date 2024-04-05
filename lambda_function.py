@@ -1,6 +1,7 @@
 from helperfunctions import get_data, trade, inform_subscribers
 from indicators import Indicators
 
+
 def lambda_handler():
     ticker = "MCO"
 

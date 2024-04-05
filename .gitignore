@@ -64,3 +64,5 @@ yfinance/
 __pycache__/subscriber.cpython-312.pyc
 linuxdependencies/
 lambda_function.zip
+myenv/
+ __pycache__/helperfunctions.cpython-312.pyc

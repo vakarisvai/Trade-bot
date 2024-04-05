@@ -1,5 +1,12 @@
 import boto3
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+region_name = os.getenv("region_name")
+aws_access_key_id = os.environ.get("aws_access_key")
+aws_secret_access_key = os.environ.get("aws_secret_access_key")
 
 
 def create_table(
@@ -8,20 +15,19 @@ def create_table(
 
     dynamodb = boto3.resource(
         "dynamodb",
-        aws_access_key_id=os.environ.get("aws_access_key"),
-        aws_secret_access_key=os.environ.get("aws_secret_access_key"),
-        region_name="us-east-1",
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        region_name=region_name,
     )
 
     # Create the table with initial provisioned capacity units (optional, adjust as needed)
-    table = dynamodb.create_table(
+    dynamodb.create_table(
         TableName=table_name,
         KeySchema=key_schema,
         AttributeDefinitions=list(columns.items()),
         ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
     )
 
-    # Print a confirmation message
     print(f"Table '{table_name}' created successfully!")
 
 
